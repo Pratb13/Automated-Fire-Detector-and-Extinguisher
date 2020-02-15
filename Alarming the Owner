@@ -1,0 +1,82 @@
+
+
+
+#include <Adafruit_Sensor.h>
+
+#define BLYNK_PRINT Serial
+
+
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+#include <DHT.h>
+
+
+char auth[] = "cb345868968c49b7ae55757d16be60fb";
+
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "JONTY";
+char pass[] = "";
+
+DHT dht2 (2,DHT11);          //  digital pin we're connected to
+int BZ= 13;
+int MTR=05;
+
+
+
+BlynkTimer timer;
+
+
+void sendSensor()
+{
+  float t = dht2.readTemperature(); 
+
+  if (isnan(t)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return;
+  }
+  else
+  if((int)t>25)
+  {Serial.println("Fire detected at");
+  Serial.println(millis()/1000);
+   Blynk.email("ankanasadhu98@gmail.com", "Subject: Fire Alarm", "Fire has been detected");
+   digitalWrite(BZ,HIGH);
+    digitalWrite(MTR,HIGH);
+   for(;;)
+  { 
+    delay(50000000);
+  }
+  
+  }
+ else 
+  {  digitalWrite(BZ,LOW);
+    digitalWrite(MTR,LOW);}
+  Blynk.virtualWrite(V6, t);
+  Serial.println("Temperature in C:");
+  Serial.println((dht2.readTemperature()));
+  delay(10000);
+}
+
+void setup()
+{
+ 
+  Serial.begin(9600);
+
+  Blynk.begin(auth, ssid, pass);
+   pinMode(BZ, OUTPUT);
+
+   pinMode(MTR, OUTPUT);
+  
+ Blynk.email("ankanasadhu98@gmail.com", "Subject:Status", "Your system is online now");
+  dht2.begin();
+
+  timer.setInterval(1000L, sendSensor);
+}
+
+void loop()
+{
+  
+
+  Blynk.run();
+  timer.run();
+}
